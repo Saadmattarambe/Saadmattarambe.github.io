@@ -1,0 +1,210 @@
+#_____LOAD THE NECESSARY PACKAGES AND LOAD LIBRARIES
+install.packages("tidyverse")
+install.packages("lubridate")
+install.packages("ggplot2")
+install.packages("dplyr")
+install.packages("hms")
+install.packages("data.table")
+install.packages("scales")
+
+library(tidyverse)
+library(lubridate)
+library(ggplot2)
+library(dplyr)
+library(hms)
+library(data.table)
+library(scales)
+
+#______SET THE DIRECTORY TO OBTAIN AND IMPORT THE DATA USING “setwd”
+setwd("C:/Users/User1/Documents/Raw_csv")     
+
+#______import the data using read code.
+Jul_2023   <- read_csv("202307-divvy-tripdata.csv")
+Jun_2023  <- read_csv("202306-divvy-tripdata.csv")
+May_2023 <- read_csv("202305-divvy-tripdata.csv")
+Apr_2023  <- read_csv("202304-divvy-tripdata.csv")
+Mar_2023 <- read_csv("202303-divvy-tripdata.csv")
+Feb_2023  <- read_csv("202302-divvy-tripdata.csv")
+Jan_2023   <- read_csv("202301-divvy-tripdata.csv")
+Dec_2022  <- read_csv("202212-divvy-tripdata.csv")
+Nov_2022  <- read_csv("202211-divvy-tripdata.csv")
+Oct_2022   <- read_csv("202210-divvy-tripdata.csv")
+Sep_2022   <- read_csv("202209-divvy-tripdata.csv")
+Aug_2022   <- read_csv("202208-divvy-tripdata.csv")
+
+#_____MERGE THE 12 MONTH’S DATA INTO A SINGLE DATAFRAME FOR A WHOLISTIC CLEANING, TRANSFORMATION AND ANALYSIS. AND FURTHER NAME THE DATA FRAME AS “all_trips” USING THE “bind_rows” 
+all_trips <- bind_rows(Jul_2023, Jun_2023, May_2023, Apr_2023, Mar_2023, Feb_2023, Jan_2023, Dec_2022, Nov_2022, Oct_2022, Sep_2022, Aug_2022)
+
+
+3.2 Checking the data for errors.
+#_____HAVE A GLIMPSE OF THE DATAFRAME TO GET SUMMARY OF THE DATA FRAME.
+Head(all_trips) 
+str(all_trips)
+summary(all_trips)
+
+#_____TO GET THE DETAILED SUMMARY OF THE DATAFRAME.
+library(skimr)
+skim_without_charts(all_trips) 
+
+#_____CREATE A NEW COLUMN TO CALCULATE RIDE LENGTH BY; SUBTRACTING “ended_at” FROM “started_at” AND THEN CONVERTED THE UNITS TO MINUTES 
+all_trips$ride_length <- difftime(all_trips$ended_at, all_trips$started_at, units = "mins")
+head(all_trips) 
+
+#_____CREATE AND ADD NEW COLUMNS; YEAR, MONTH, DAY, DAY OF WEEK, TIME, HOUR AND SEASON
+all_trips$date <- as.Date(all_trips$started_at) #_____adds date column.
+all_trips$day_of_week <- wday(all_trips$started_at) #_____adds day of week column 
+all_trips$day_of_week <- format(as.Date(all_trips$date), "%A") #_____formats the column day of week as date
+all_trips$month <- format(as.Date(all_trips$date), "%m")  #_____adds month column and format as date.
+all_trips$day <- format(as.Date(all_trips$date), "%d") #_____adds day column.
+all_trips$year <- format(as.Date(all_trips$date), "%Y") #_____adds year column and format as date.
+all_trips$time <- format(as.Date(all_trips$date), "%H:%M:%S") #_____ formats time as HMS.
+all_trips$time <- as_hms((all_trips$started_at)) #_____adds time column
+all_trips$hour <- hour(all_trips$time) #_____adds hour column.
+
+#_____CREATE AND ADD MONTH COLUMN
+all_trips <-all_trips %>% mutate(month2 = 
+                                             case_when(month == "03" ~ "March",
+                                                       month == "04" ~ "April",
+                                                       month == "05" ~ "May",
+                                                       month == "06"  ~ "June",
+                                                       month == "07"  ~ "July",
+                                                       month == "08"  ~ "August",
+                                                       month == "09" ~ "September",
+                                                       month == "10" ~ "October",
+                                                       month == "11" ~ "November",
+                                                       month == "12" ~ "December",
+                                                       month == "01" ~ "January",
+                                                       month == "02" ~ "February")
+) 
+
+#_____CREATE AND ADD TIME OF DAY COLUMN FROM HOUR
+all_trips <-all_trips %>% mutate(hour= 
+                                             case_when(hour == "0" ~ "Night",
+                                                       hour == "1" ~ "Night",
+                                                       hour == "2" ~ "Night",
+                                                       hour == "3" ~ "Night",
+                                                       hour == "4" ~ "Night",
+                                                       hour == "5" ~ "Night",
+                                                       hour == "6" ~ "Morning",
+                                                       hour == "7" ~ "Morning",
+                                                       hour == "8" ~ "Morning",
+                                                       hour == "9" ~ "Morning",
+                                                       hour == "10" ~ "Morning",
+                                                       hour == "11" ~ "Morning",
+                                                       hour == "12" ~ "Afternoon",
+                                                       hour == "13" ~ "Afternoon",
+                                                       hour == "14" ~ "Afternoon",
+                                                       hour == "15" ~ "Afternoon",
+                                                       hour == "16" ~ "Afternoon",
+                                                       hour == "17" ~ "Afternoon",
+                                                       hour == "18" ~ "Evening",
+                                                       hour == "19" ~ "Evening",
+                                                       hour == "20" ~ "Evening",
+                                                       hour == "21" ~ "Evening",
+                                                       hour == "22" ~ "Evening",
+                                                       hour == "23" ~ "Evening")
+) 
+
+#_____ CREATE AND ADD THE 4 SEASONS COLUMN FROM MONTHS TO ANALYZE RIDES IN ALL SEASONS
+all_trips <-all_trips %>% mutate(season = 
+                                             case_when(month == "03" ~ "Spring",
+                                                       month == "04" ~ "Spring",
+                                                       month == "05" ~ "Spring",
+                                                       month == "06"  ~ "Summer",
+                                                       month == "07"  ~ "Summer",
+                                                       month == "08"  ~ "Summer",
+                                                       month == "09" ~ "Fall",
+                                                       month == "10" ~ "Fall",
+                                                       month == "11" ~ "Fall",
+                                                       month == "12" ~ "Winter",
+                                                       month == "01" ~ "Winter",
+                                                       month == "02" ~ "Winter")
+) 
+
+#_____SORT MONTH AND DAY OF WEEK COLUMN
+all_trips$month2 <- ordered(all_trips$month2, levels=c("January","February","March","April","May","June", "July", "August", "September", "October", "November", "December"))
+all_trips$day_of_week <- ordered(all_trips$day_of_week, levels=c("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday", "Sunday"))
+3.3 cleaning
+Head (all_trips)
+
+library(skimr)
+skim_without_charts(all_trips) #_____getting a detailed summary of the dataframe.
+#_____REMOVE COLUMNS THAT ARE NOT RELEVANT FOR OUR ANALYSIS
+all_trips <- all_trips %>%  
+  select(-c(start_lat, start_lng, end_lat, end_lng, start_station_id, end_station_name, end_station_id))
+head(all_trips) 
+
+sum(is.na(all_trips)) #_____sums all NA in the data frame.
+all_trips <- na.omit(all_trips)  #_____to remove all NA values in the dataframe
+all_trips <- distinct(all_trips) #_____to filter only unique values in case there are duplicates.
+all_trips <- all_trips[!(all_trips$ride_length <=0),] #_____to remove values that are less that zero in the ride length column.
+
+HAVING A FINAL CHECK ON THE DATAFRAME BEFORE ANALYSIS
+head(all_trips)
+str(all_trips)
+summary (all_trips)
+
+write.csv(all_trips, "C://Users//User//Documents//Google Data Analytics//capstone_date_cleaned.csv", row.names=FALSE) #_____Saves the cleaned data frame in Documents folder, sub-folder Google Data Analytics “capstone_data_cleaned” in csv format. 
+
+
+ITEM 4: SUMMARY OF ANALYSIS 
+4.1 First, let’s conduct descriptive analysis of the data.
+#_____CALCULATE TOTAL RIDES.
+nrow(all_trips) 
+
+#_____MEAN, MEDIAN, MIN AND MAX RIDES.
+aggregate(all_trips$ride_length ~ all_trips$member_casual, FUN = mean)
+aggregate(all_trips$ride_length ~ all_trips$member_casual, FUN = median)
+aggregate(all_trips$ride_length ~ all_trips$member_casual, FUN = max)
+aggregate(all_trips$ride_length ~ all_trips$member_casual, FUN = min)
+
+#_____TOTAL RIDES PER MONTH
+all_trips %>%
+  count(month2) 
+
+#_____TOTAL RIDES BY RIDER SUBSCRIPTION TYPE
+all_trips %>%
+  group_by(member_casual) %>% 
+  count(member_casual)
+
+#_____TOTAL TRIPS MADE BY EACH BIKE TYPE.
+all_trips %>%
+    count(rideable_type)
+
+#_____TOTAL RIDES BY TIME OF THE DAY
+all_trips %>%
+  group_by(hour) %>% 
+  count(hour)
+
+#_____TOTAL RIDES BY TIME OF THE DAY RIDES PER SUBSCRIPTION TYPE 
+all_trips %>%
+  group_by(member_casual) %>% 
+  count(hour)
+
+#_____SEASONAL ANALYSIS
+#_____TOTAL RIDES BY MEMBER TYPE IN THE SEASONS
+all_trips %>%
+  group_by(season, member_casual) %>% 
+  count(season)
+
+#_____TOTAL RIDES IN WHOLE SEASON
+all_trips %>%
+  group_by(season) %>% 
+  count(season)
+
+#_____TOTAL RIDES EVERY MONDAY-SUNDAY PER SEASON
+all_trips %>%
+  group_by(season) %>% 
+  count(day_of_week)
+
+#_____AVERAGE RIDE LENGTH BY RIDER SUBSCRIPTION TYPE
+all_trips %>% 
+  group_by(hour, member_casual) %>% 
+  summarise_at(vars(ride_length),
+               list(time = mean))
+
+#_____AVERAGE RIDE LENGTH PER TIME OF THE DAY
+all_trips %>% 
+  group_by(hour) %>% 
+  summarise_at(vars(ride_length),
+               list(time = mean))
