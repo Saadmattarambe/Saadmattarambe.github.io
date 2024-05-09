@@ -35,8 +35,9 @@ Understand how casual riders and annual members use Cyclistic bikes differently.
 6.	There are no issues of bias or credibility as the data is licensed and made available to the public.
 
    
-****ITEM 3: PROCESS ****
+**ITEM 3: PROCESS.**
+
 I choose R to clean, transform and analyze the data.      
 
-**3.1 Importing the data: **
+**3.1 Importing the data:**
 I have saved the data in documents and named the folder “Raw_csv”
