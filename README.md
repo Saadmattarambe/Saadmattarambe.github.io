@@ -107,7 +107,10 @@ nrow(all_trips)
 5.1 #_____TOTAL RIDES PER YEAR BY MEMBER/CASUAL
 ![image](https://github.com/Saadmattarambe/Saadmattarambe.github.io/assets/155629992/830732b3-3fe0-4126-951c-35d9e00825a2)
 
+
+
 5.2 #_____RIDES PER MONTH BY MEMBER/CASUAL
+
 ![image](https://github.com/Saadmattarambe/Saadmattarambe.github.io/assets/155629992/717c0f36-502d-4fa7-b43a-02cd525bffa8)
 
 
